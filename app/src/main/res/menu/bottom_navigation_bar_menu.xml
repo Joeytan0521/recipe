@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/bnv_menu_recipes"
+        android:title="Recipes"
+        android:icon="@drawable/baseline_menu_book_24"/>
+    <item
+        android:id="@+id/bnv_menu_favourite"
+        android:title="Favourite"
+        android:icon="@drawable/baseline_favorite_24"/>
+    <item
+        android:id="@+id/bnv_menu_profile"
+        android:title="Profile"
+        android:icon="@drawable/baseline_account_circle_24"/>
+</menu>
