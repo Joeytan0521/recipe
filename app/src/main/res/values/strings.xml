@@ -1,3 +1,15 @@
 <resources>
-    <string name="app_name">recipe</string>
+    <string name="app_name">Week1_Training</string>
+    <string name="profile">Profile</string>
+    <string name="Kim_Jennie">Kim Jennie</string>
+    <string name="Artist">Artist</string>
+    <string name="Email">Email</string>
+    <string name="Phone_Number">Phone Number</string>
+    <string name="Website">Website</string>
+    <string name="Password">Password</string>
+    <string name="email_hint">Enter your email here</string>
+    <string name="phoneno_hint">Enter your phone number here</string>
+    <string name="website_hint">Enter your website url here</string>
+    <string name="password_hint">Enter your password here</string>
+    <string name="log_out">Log out</string>
 </resources>

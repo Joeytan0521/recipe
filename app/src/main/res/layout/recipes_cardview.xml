@@ -16,11 +16,12 @@
             android:id="@+id/recipe_image"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:background="@drawable/test"
-            app:layout_constraintWidth_percent="0.3"
+            android:src="@drawable/test"
+            app:layout_constraintWidth_percent="0.4"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent"
+            android:scaleType="centerCrop"/>
 
         <TextView
             android:id="@+id/recipe_name"
@@ -28,21 +29,22 @@
             android:layout_height="wrap_content"
             app:layout_constraintLeft_toRightOf="@id/recipe_image"
             app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginLeft="20dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginLeft="30dp"
             android:text="recipe name"
             android:textStyle="bold"
             android:textSize="20sp"/>
 
-        <TextView
-            android:id="@+id/recipe_desc"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/recipe_name"
-            app:layout_constraintLeft_toRightOf="@id/recipe_image"
-            android:layout_marginLeft="20dp"
-            android:text="recipe description"
-            android:textSize="18sp"
-            android:layout_marginTop="10dp"/>
+<!--        <TextView-->
+<!--            android:id="@+id/recipe_desc"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            app:layout_constraintTop_toBottomOf="@id/recipe_name"-->
+<!--            app:layout_constraintLeft_toRightOf="@id/recipe_image"-->
+<!--            android:layout_marginLeft="20dp"-->
+<!--            android:text="recipe description"-->
+<!--            android:textSize="18sp"-->
+<!--            android:layout_marginTop="10dp"/>-->
 
         <Button
             android:id="@+id/favourite_button"

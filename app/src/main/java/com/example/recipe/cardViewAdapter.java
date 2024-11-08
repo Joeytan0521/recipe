@@ -36,7 +36,7 @@ public class cardViewAdapter extends RecyclerView.Adapter<cardViewAdapter.ViewHo
     @Override
     public void onBindViewHolder(@NonNull cardViewAdapter.ViewHolder holder, int position) {
         holder.recipe_name.setText(recipeDataList.get(position).getRecipeName());
-        holder.recipe_desc.setText(recipeDataList.get(position).getRecipeDesc());
+//        holder.recipe_desc.setText(recipeDataList.get(position).getRecipeDesc());
 
         Glide.with(context).load(recipeDataList.get(position).getRecipeImage()).into(holder.recipe_image);
     }
@@ -49,14 +49,14 @@ public class cardViewAdapter extends RecyclerView.Adapter<cardViewAdapter.ViewHo
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public ImageView recipe_image;
         public TextView recipe_name;
-        public TextView recipe_desc;
+//        public TextView recipe_desc;
         public Button favourite_button;
 
         public ViewHolder(View itemView) {
             super(itemView);
             recipe_image = itemView.findViewById(R.id.recipe_image);
             recipe_name = itemView.findViewById(R.id.recipe_name);
-            recipe_desc = itemView.findViewById(R.id.recipe_desc);
+//            recipe_desc = itemView.findViewById(R.id.recipe_desc);
             favourite_button = itemView.findViewById(R.id.favourite_button);
         }
     }
