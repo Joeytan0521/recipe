@@ -35,12 +35,10 @@ public class bnv_fragment3_profile extends Fragment {
     private ImageView camera_icon;
     private ImageView profile_image;
     private Uri photoUri;
+    private AlertDialog alertDialog;
     private static final int REQUEST_CAMERA_PERMISSION_CODE = 1;
     private static final int STORAGE_PERMISSION_CODE = 2;
 
-    //glide have the feature to make the picture circular
-    //store the path/uri in database?, alert dialog need to be dimiss after you select an option
-    //use database to store the favourite things instead of firebase
     private final ActivityResultLauncher<Intent> cameraLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -53,6 +51,9 @@ public class bnv_fragment3_profile extends Fragment {
                         saveImageToGallery(photo);
                     }
                 }
+                if (alertDialog != null && alertDialog.isShowing()) {
+                    alertDialog.dismiss();
+                }
             }
     );
 
@@ -64,6 +65,9 @@ public class bnv_fragment3_profile extends Fragment {
                     Glide.with(this).load(imageUri).into(profile_image);
                 } else {
                     Toast.makeText(requireContext(), "No image selected", Toast.LENGTH_SHORT).show();
+                }
+                if (alertDialog != null && alertDialog.isShowing()) {
+                    alertDialog.dismiss();
                 }
             }
     );
@@ -88,8 +92,14 @@ public class bnv_fragment3_profile extends Fragment {
             TextView alert_dialog_gallery = dialogView.findViewById(R.id.alert_dialog_gallery);
 
             alert_dialog_cancel_button.setOnClickListener(view1 -> alertDialog.dismiss());
-            alert_dialog_camera.setOnClickListener(view1 -> checkPermissionAndProceed(Manifest.permission.CAMERA, REQUEST_CAMERA_PERMISSION_CODE, this::captureImage));
-            alert_dialog_gallery.setOnClickListener(view1 -> checkPermissionAndProceed(Manifest.permission.READ_EXTERNAL_STORAGE, STORAGE_PERMISSION_CODE, this::pickImageFromGallery));
+            alert_dialog_camera.setOnClickListener(view1 -> {
+                checkPermissionAndProceed(Manifest.permission.CAMERA, REQUEST_CAMERA_PERMISSION_CODE, this::captureImage);
+                alertDialog.dismiss();
+            });
+            alert_dialog_gallery.setOnClickListener(view1 -> {
+                checkPermissionAndProceed(Manifest.permission.READ_EXTERNAL_STORAGE, STORAGE_PERMISSION_CODE, this::pickImageFromGallery);
+                alertDialog.dismiss();
+            });
 
             alertDialog.show();
         });
