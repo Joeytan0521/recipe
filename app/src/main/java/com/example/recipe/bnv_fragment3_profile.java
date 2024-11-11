@@ -1,41 +1,69 @@
 package com.example.recipe;
 
+import android.Manifest;
+import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.FileProvider;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import java.io.File;
-import java.io.IOException;
+import com.bumptech.glide.Glide;
+
+import java.io.OutputStream;
+import java.util.Objects;
 
 public class bnv_fragment3_profile extends Fragment {
 
-    ImageView camera_icon;
-    ImageView profile_image;
+    private ImageView camera_icon;
+    private ImageView profile_image;
     private Uri photoUri;
+    private static final int REQUEST_CAMERA_PERMISSION_CODE = 1;
+    private static final int STORAGE_PERMISSION_CODE = 2;
 
+    //glide have the feature to make the picture circular
+    //store the path/uri in database?, alert dialog need to be dimiss after you select an option
+    //use database to store the favourite things instead of firebase
     private final ActivityResultLauncher<Intent> cameraLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
-                if (result.getResultCode() == getActivity().RESULT_OK) {
+                if (result.getResultCode() == requireActivity().RESULT_OK) {
                     if (photoUri != null) {
-                        profile_image.setImageURI(photoUri); //use glide
+                        Glide.with(this).load(photoUri).into(profile_image);
                     } else if (result.getData() != null) {
                         Bitmap photo = (Bitmap) result.getData().getExtras().get("data");
                         profile_image.setImageBitmap(photo);
+                        saveImageToGallery(photo);
                     }
+                }
+            }
+    );
+
+    private final ActivityResultLauncher<Intent> imageResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == requireActivity().RESULT_OK) {
+                    Uri imageUri = result.getData().getData();
+                    Glide.with(this).load(imageUri).into(profile_image);
+                } else {
+                    Toast.makeText(requireContext(), "No image selected", Toast.LENGTH_SHORT).show();
                 }
             }
     );
@@ -49,29 +77,76 @@ public class bnv_fragment3_profile extends Fragment {
         profile_image = view.findViewById(R.id.profile_image);
 
         camera_icon.setOnClickListener(v -> {
-            Intent camera_intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(requireContext());
+            View dialogView = inflater.inflate(R.layout.alert_dialog_camera_or_gallery, null);
+            dialogBuilder.setView(dialogView);
 
-            File photoFile = createImageFile();
-            if (photoFile != null) {
-                photoUri = FileProvider.getUriForFile(getContext(), "com.example.recipe.fileprovider", photoFile);
-                camera_intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
-            }
+            AlertDialog alertDialog = dialogBuilder.create();
 
-            cameraLauncher.launch(camera_intent);
+            Button alert_dialog_cancel_button = dialogView.findViewById(R.id.alert_dialog_cancel_button);
+            TextView alert_dialog_camera = dialogView.findViewById(R.id.alert_dialog_camera);
+            TextView alert_dialog_gallery = dialogView.findViewById(R.id.alert_dialog_gallery);
+
+            alert_dialog_cancel_button.setOnClickListener(view1 -> alertDialog.dismiss());
+            alert_dialog_camera.setOnClickListener(view1 -> checkPermissionAndProceed(Manifest.permission.CAMERA, REQUEST_CAMERA_PERMISSION_CODE, this::captureImage));
+            alert_dialog_gallery.setOnClickListener(view1 -> checkPermissionAndProceed(Manifest.permission.READ_EXTERNAL_STORAGE, STORAGE_PERMISSION_CODE, this::pickImageFromGallery));
+
+            alertDialog.show();
         });
 
         return view;
     }
 
-    private File createImageFile() {
-        try {
-            File storageDir = getActivity().getExternalFilesDir(null);
-            File image = new File(storageDir, "flashCropped.png");
-            return image;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+    private void checkPermissionAndProceed(String permission, int requestCode, Runnable onGranted) {
+        if (ContextCompat.checkSelfPermission(requireContext(), permission) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{permission}, requestCode);
+        } else {
+            onGranted.run();
         }
     }
 
+    private void pickImageFromGallery() {
+        Intent galleryIntent = new Intent(Intent.ACTION_PICK);
+        galleryIntent.setType("image/*");
+        imageResultLauncher.launch(galleryIntent);
+    }
+
+    private void captureImage() {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        photoUri = requireContext().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new ContentValues());
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+        cameraLauncher.launch(intent);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (requestCode == STORAGE_PERMISSION_CODE) {
+                pickImageFromGallery();
+            } else if (requestCode == REQUEST_CAMERA_PERMISSION_CODE) {
+                captureImage();
+            }
+        } else {
+            String message = requestCode == STORAGE_PERMISSION_CODE ? "Storage permission denied" : "Camera permission denied";
+            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void saveImageToGallery(Bitmap imageBitmap) {
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, "IMG_" + System.currentTimeMillis() + ".jpg");
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+        values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES);
+
+        Uri uri = requireContext().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+        try (OutputStream outStream = requireContext().getContentResolver().openOutputStream(Objects.requireNonNull(uri))) {
+            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 80, outStream);
+            Toast.makeText(requireContext(), "Image Saved Successfully", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Error saving image", Toast.LENGTH_SHORT).show();
+        }
+    }
 }
