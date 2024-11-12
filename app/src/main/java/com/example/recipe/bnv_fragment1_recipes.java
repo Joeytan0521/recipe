@@ -28,6 +28,8 @@ import java.util.List;
 
 public class bnv_fragment1_recipes extends Fragment {
 
+    private ArrayList<CoffeeItem> coffeeItems = new ArrayList<>();
+
     private RecyclerView recyclerView;
     private cardViewAdapter cardViewAdapter;
     private List<RecipeData> recipeDataList = new ArrayList<>();
@@ -43,93 +45,101 @@ public class bnv_fragment1_recipes extends Fragment {
         recipe_progressBar = view.findViewById(R.id.recipe_progressBar);
         recipe_errorText = view.findViewById(R.id.recipe_errorText);
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+//        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        cardViewAdapter = new cardViewAdapter(recipeDataList, getContext());
-        recyclerView.setAdapter(cardViewAdapter);
+//        cardViewAdapter = new cardViewAdapter(recipeDataList, getContext());
+//        recyclerView.setAdapter(cardViewAdapter);
 
-        String myUrl = "https://www.themealdb.com/api/json/v1/1/filter.php?a=Canadian";
-        new HttpGetRequest().execute(myUrl);
+//        String myUrl = "https://www.themealdb.com/api/json/v1/1/filter.php?a=Canadian";
+//        new HttpGetRequest().execute(myUrl);
+
+        coffeeItems.add(new CoffeeItem(R.drawable.coffee01, "Latte", "0", "0"));
+        coffeeItems.add(new CoffeeItem(R.drawable.coffee02, "Milk coffee", "1", "0"));
+        coffeeItems.add(new CoffeeItem(R.drawable.coffee03, "Swedish", "2", "0"));
+        coffeeItems.add(new CoffeeItem(R.drawable.coffee04, "Espresso", "3", "0"));
+
+        recyclerView.setAdapter(new CoffeeAdapter(coffeeItems, getActivity()));
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         return view;
     }
 
-    public class HttpGetRequest extends AsyncTask<String, Void, String> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            recipe_progressBar.setVisibility(View.VISIBLE);
-            recipe_errorText.setVisibility(View.GONE);
-        }
-
-        @Override
-        protected String doInBackground(String... params) {
-            String stringUrl = params[0];
-            String result = null;
-            String inputLine;
-            try {
-                URL myUrl = new URL(stringUrl);
-                HttpURLConnection connection = (HttpURLConnection) myUrl.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setReadTimeout(15000);
-                connection.setConnectTimeout(15000);
-
-                connection.connect();
-
-                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                    Log.e("API Error", "HTTP error code: " + connection.getResponseCode());
-                    return null;
-                }
-
-                InputStreamReader streamReader = new InputStreamReader(connection.getInputStream());
-                BufferedReader reader = new BufferedReader(streamReader);
-                StringBuilder stringBuilder = new StringBuilder();
-                while ((inputLine = reader.readLine()) != null) {
-                    stringBuilder.append(inputLine);
-                }
-                reader.close();
-                streamReader.close();
-                result = stringBuilder.toString();
-            } catch (IOException e) {
-                Log.e("API Error", "IOException: " + e.getMessage());
-            }
-            return result;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            super.onPostExecute(result);
-            recipe_progressBar.setVisibility(View.GONE);
-
-            if (result == null) {
-                recipe_errorText.setVisibility(View.VISIBLE);
-                recipe_errorText.setText("Failed to fetch data.");
-                Log.e("API Error", "Result is null");
-                return;
-            }
-
-            Log.d("API Result", result);
-
-            try {
-                JSONObject jsonObject = new JSONObject(result);
-                JSONArray resultsArray = jsonObject.getJSONArray("meals");
-
-                recipeDataList.clear();
-                for (int i = 0; i < resultsArray.length(); i++) {
-                    JSONObject resultObject = resultsArray.getJSONObject(i);
-                    String recipe_name = resultObject.getString("strMeal");
-                    String recipe_image = resultObject.getString("strMealThumb");
-
-                    recipeDataList.add(new RecipeData(recipe_name, recipe_image));
-                }
-
-                cardViewAdapter.notifyDataSetChanged();
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                recipe_errorText.setVisibility(View.VISIBLE);
-                recipe_errorText.setText("Error fetching data. Check log for details.");
-            }
-        }
-    }
+//    public class HttpGetRequest extends AsyncTask<String, Void, String> {
+//        @Override
+//        protected void onPreExecute() {
+//            super.onPreExecute();
+//            recipe_progressBar.setVisibility(View.VISIBLE);
+//            recipe_errorText.setVisibility(View.GONE);
+//        }
+//
+//        @Override
+//        protected String doInBackground(String... params) {
+//            String stringUrl = params[0];
+//            String result = null;
+//            String inputLine;
+//            try {
+//                URL myUrl = new URL(stringUrl);
+//                HttpURLConnection connection = (HttpURLConnection) myUrl.openConnection();
+//                connection.setRequestMethod("GET");
+//                connection.setReadTimeout(15000);
+//                connection.setConnectTimeout(15000);
+//
+//                connection.connect();
+//
+//                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+//                    Log.e("API Error", "HTTP error code: " + connection.getResponseCode());
+//                    return null;
+//                }
+//
+//                InputStreamReader streamReader = new InputStreamReader(connection.getInputStream());
+//                BufferedReader reader = new BufferedReader(streamReader);
+//                StringBuilder stringBuilder = new StringBuilder();
+//                while ((inputLine = reader.readLine()) != null) {
+//                    stringBuilder.append(inputLine);
+//                }
+//                reader.close();
+//                streamReader.close();
+//                result = stringBuilder.toString();
+//            } catch (IOException e) {
+//                Log.e("API Error", "IOException: " + e.getMessage());
+//            }
+//            return result;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(String result) {
+//            super.onPostExecute(result);
+//            recipe_progressBar.setVisibility(View.GONE);
+//
+//            if (result == null) {
+//                recipe_errorText.setVisibility(View.VISIBLE);
+//                recipe_errorText.setText("Failed to fetch data.");
+//                Log.e("API Error", "Result is null");
+//                return;
+//            }
+//
+//            Log.d("API Result", result);
+//
+//            try {
+//                JSONObject jsonObject = new JSONObject(result);
+//                JSONArray resultsArray = jsonObject.getJSONArray("meals");
+//
+//                recipeDataList.clear();
+//                for (int i = 0; i < resultsArray.length(); i++) {
+//                    JSONObject resultObject = resultsArray.getJSONObject(i);
+//                    String recipe_name = resultObject.getString("strMeal");
+//                    String recipe_image = resultObject.getString("strMealThumb");
+//
+//                    recipeDataList.add(new RecipeData(recipe_name, recipe_image));
+//                }
+//
+//                cardViewAdapter.notifyDataSetChanged();
+//
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//                recipe_errorText.setVisibility(View.VISIBLE);
+//                recipe_errorText.setText("Error fetching data. Check log for details.");
+//            }
+//        }
+//    }
 }

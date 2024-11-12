@@ -17,6 +17,9 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.Cursor;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -30,6 +33,7 @@ import com.bumptech.glide.Glide;
 import java.io.OutputStream;
 import java.util.Objects;
 
+//extra: glide have the feature to make the picture circular
 public class bnv_fragment3_profile extends Fragment {
 
     private ImageView camera_icon;
@@ -45,6 +49,7 @@ public class bnv_fragment3_profile extends Fragment {
                 if (result.getResultCode() == requireActivity().RESULT_OK) {
                     if (photoUri != null) {
                         Glide.with(this).load(photoUri).into(profile_image);
+                        storeImageUri(photoUri);
                     } else if (result.getData() != null) {
                         Bitmap photo = (Bitmap) result.getData().getExtras().get("data");
                         profile_image.setImageBitmap(photo);
@@ -63,6 +68,7 @@ public class bnv_fragment3_profile extends Fragment {
                 if (result.getResultCode() == requireActivity().RESULT_OK) {
                     Uri imageUri = result.getData().getData();
                     Glide.with(this).load(imageUri).into(profile_image);
+                    storeImageUri(imageUri);
                 } else {
                     Toast.makeText(requireContext(), "No image selected", Toast.LENGTH_SHORT).show();
                 }
@@ -79,6 +85,8 @@ public class bnv_fragment3_profile extends Fragment {
 
         camera_icon = view.findViewById(R.id.camera_icon);
         profile_image = view.findViewById(R.id.profile_image);
+
+        loadProfileImage();
 
         camera_icon.setOnClickListener(v -> {
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(requireContext());
@@ -159,4 +167,41 @@ public class bnv_fragment3_profile extends Fragment {
             Toast.makeText(requireContext(), "Error saving image", Toast.LENGTH_SHORT).show();
         }
     }
+
+    //store the path/uri in database
+    private void storeImageUri(Uri imageUri) {
+        DatabaseHelper dbHelper = new DatabaseHelper(requireContext());
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(DatabaseHelper.COLUMN_PROFILE_IMAGE_URI, imageUri.toString());
+
+        db.insert(DatabaseHelper.TABLE_PROFILE_IMAGE, null, values);
+        db.close();
+    }
+
+    private void loadProfileImage() {
+        DatabaseHelper dbHelper = new DatabaseHelper(requireContext());
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                DatabaseHelper.TABLE_PROFILE_IMAGE,
+                new String[]{DatabaseHelper.COLUMN_PROFILE_IMAGE_URI},
+                null, null, null, null,
+                DatabaseHelper.COLUMN_PROFILE_ID + " DESC",
+                "1"
+        );
+
+        if (cursor != null && cursor.moveToFirst()) {
+            String uriString = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PROFILE_IMAGE_URI));
+            Uri imageUri = Uri.parse(uriString);
+            requireActivity().runOnUiThread(() -> Glide.with(this)
+                    .load(imageUri)
+                    .into(profile_image));
+            cursor.close();
+        }
+        db.close();
+    }
+
+
 }
